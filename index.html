@@ -1,0 +1,618 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>TeamLegacy Time Capsule</title>
+  <style>
+    :root {
+      --bg1: #061018;
+      --bg2: #0d1c2b;
+      --panel: rgba(10, 20, 34, 0.82);
+      --panel-border: rgba(120, 200, 255, 0.22);
+      --text: #eaf6ff;
+      --muted: #9ec3d9;
+      --accent: #5bd0ff;
+      --accent-2: #86ffcf;
+      --danger: #ff8d8d;
+      --good: #99ffb9;
+      --shadow: 0 20px 60px rgba(0,0,0,0.4);
+      --radius: 22px;
+    }
+
+    * { box-sizing: border-box; }
+
+    html, body {
+      margin: 0;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background: radial-gradient(circle at top, #10263d 0%, #07111c 38%, #03070c 100%);
+      color: var(--text);
+      font-family: Arial, Helvetica, sans-serif;
+    }
+
+    #bg {
+      position: fixed;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 0;
+      display: block;
+    }
+
+    .scanlines::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      background: linear-gradient(to bottom, rgba(255,255,255,0.03), rgba(255,255,255,0.01) 50%, rgba(0,0,0,0.04));
+      background-size: 100% 4px;
+      opacity: 0.25;
+      z-index: 1;
+    }
+
+    .app {
+      position: relative;
+      z-index: 2;
+      width: min(980px, calc(100vw - 24px));
+      max-height: calc(100vh - 24px);
+      margin: 12px auto;
+      padding: 22px;
+      border-radius: 28px;
+      border: 1px solid var(--panel-border);
+      background: linear-gradient(180deg, rgba(13, 24, 40, 0.9), rgba(8, 14, 24, 0.82));
+      backdrop-filter: blur(10px);
+      box-shadow: var(--shadow);
+      overflow: auto;
+    }
+
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 18px;
+      margin-bottom: 18px;
+      flex-wrap: wrap;
+    }
+
+    .brand h1 {
+      margin: 0;
+      font-size: clamp(1.8rem, 3vw, 2.7rem);
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--accent);
+      text-shadow: 0 0 18px rgba(91, 208, 255, 0.35);
+    }
+
+    .brand p {
+      margin: 8px 0 0;
+      color: var(--muted);
+      line-height: 1.45;
+      max-width: 640px;
+    }
+
+    .status-box {
+      min-width: 220px;
+      padding: 14px 16px;
+      border-radius: 18px;
+      border: 1px solid rgba(134,255,207,0.18);
+      background: rgba(255,255,255,0.03);
+    }
+
+    .status-label {
+      font-size: 0.75rem;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.14em;
+      margin-bottom: 8px;
+    }
+
+    .status-value {
+      font-size: 1.05rem;
+      font-weight: 700;
+      color: var(--accent-2);
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: 1.1fr 0.9fr;
+      gap: 18px;
+    }
+
+    .panel {
+      padding: 18px;
+      border-radius: var(--radius);
+      border: 1px solid var(--panel-border);
+      background: rgba(255,255,255,0.035);
+    }
+
+    .panel h2 {
+      margin: 0 0 14px;
+      font-size: 1.1rem;
+      letter-spacing: 0.04em;
+    }
+
+    label {
+      display: block;
+      margin: 0 0 8px;
+      font-size: 0.92rem;
+      color: var(--muted);
+    }
+
+    textarea, input[type="datetime-local"], input[type="text"] {
+      width: 100%;
+      border: 1px solid rgba(126, 179, 219, 0.28);
+      background: rgba(5, 10, 18, 0.78);
+      color: var(--text);
+      border-radius: 16px;
+      padding: 14px 15px;
+      outline: none;
+      transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
+      box-shadow: inset 0 0 0 1px rgba(255,255,255,0.02);
+    }
+
+    textarea:focus, input:focus {
+      border-color: rgba(91, 208, 255, 0.85);
+      box-shadow: 0 0 0 4px rgba(91, 208, 255, 0.12);
+    }
+
+    textarea {
+      min-height: 270px;
+      resize: vertical;
+      line-height: 1.5;
+      font-size: 1rem;
+    }
+
+    .row { margin-bottom: 14px; }
+
+    .btn-row {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-top: 10px;
+    }
+
+    button {
+      border: none;
+      border-radius: 14px;
+      padding: 12px 16px;
+      font-weight: 700;
+      letter-spacing: 0.03em;
+      cursor: pointer;
+      color: #061018;
+      background: linear-gradient(135deg, var(--accent), var(--accent-2));
+      transition: transform 0.15s ease, box-shadow 0.15s ease, opacity 0.15s ease;
+      box-shadow: 0 10px 22px rgba(91, 208, 255, 0.22);
+    }
+
+    button:hover { transform: translateY(-1px); }
+    button:active { transform: translateY(1px); }
+
+    button.secondary {
+      color: var(--text);
+      background: rgba(255,255,255,0.06);
+      border: 1px solid rgba(255,255,255,0.1);
+      box-shadow: none;
+    }
+
+    .hint, .tiny {
+      color: var(--muted);
+      font-size: 0.88rem;
+      line-height: 1.45;
+    }
+
+    .tiny { font-size: 0.8rem; }
+
+    .capsule-view {
+      min-height: 270px;
+      border-radius: 18px;
+      border: 1px dashed rgba(91, 208, 255, 0.28);
+      background: rgba(1, 4, 10, 0.45);
+      padding: 18px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      gap: 12px;
+    }
+
+    .capsule-title {
+      font-size: 1rem;
+      font-weight: 700;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: var(--accent);
+    }
+
+    .locked-card, .unlocked-card {
+      padding: 16px;
+      border-radius: 18px;
+      background: rgba(255,255,255,0.03);
+      border: 1px solid rgba(255,255,255,0.08);
+    }
+
+    .locked-card strong { color: #ffdca8; }
+    .unlocked-card strong { color: var(--good); }
+
+    .countdown {
+      font-size: 1.35rem;
+      font-weight: 800;
+      color: var(--accent-2);
+      letter-spacing: 0.04em;
+    }
+
+    .revealed-message {
+      white-space: pre-wrap;
+      line-height: 1.6;
+      color: var(--text);
+      word-break: break-word;
+      margin-top: 10px;
+    }
+
+    .footer-note {
+      margin-top: 16px;
+      padding-top: 14px;
+      border-top: 1px solid rgba(255,255,255,0.08);
+      color: var(--muted);
+      font-size: 0.86rem;
+      line-height: 1.45;
+    }
+
+    @media (max-width: 860px) {
+      html, body { overflow: auto; }
+      .app { max-height: none; margin: 8px; width: auto; }
+      .grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body class="scanlines">
+  <canvas id="bg"></canvas>
+
+  <main class="app">
+    <section class="header">
+      <div class="brand">
+        <h1>TeamLegacy Time Capsule</h1>
+        <p>Create a sealed digital message, lock it until a future date, and save it as a standalone capsule file. Reopen the capsule later in any modern browser to reveal the message only after the chosen unlock time.</p>
+      </div>
+      <div class="status-box">
+        <div class="status-label">System Clock</div>
+        <div class="status-value" id="clockStatus">Syncing…</div>
+      </div>
+    </section>
+
+    <section class="grid">
+      <div class="panel">
+        <h2>Create Capsule</h2>
+        <div class="row">
+          <label for="capsuleTitle">Capsule Name</label>
+          <input id="capsuleTitle" type="text" placeholder="Example: Message to Future Me" maxlength="120" />
+        </div>
+        <div class="row">
+          <label for="message">Message</label>
+          <textarea id="message" placeholder="Write your message for the future here..."></textarea>
+        </div>
+        <div class="row">
+          <label for="unlockTime">Unlock Date & Time</label>
+          <input id="unlockTime" type="datetime-local" />
+        </div>
+        <div class="hint">The exported file contains the lock date and your message data inside a sealed TeamLegacy capsule page. Before the unlock date, the message stays hidden behind the countdown screen.</div>
+        <div class="btn-row">
+          <button id="saveBtn">Save Time Capsule</button>
+          <button id="previewBtn" class="secondary">Load Preview</button>
+        </div>
+        <div class="footer-note">
+          Note: this is a browser-based time lock for personal use. Anyone with enough technical knowledge could inspect a file locally, so this is best for sentimental time capsules rather than strong cryptographic secrecy.
+        </div>
+      </div>
+
+      <div class="panel">
+        <h2>Capsule Preview</h2>
+        <div class="capsule-view" id="previewArea">
+          <div class="capsule-title">Awaiting Capsule Data</div>
+          <div class="locked-card">
+            Enter a message and future unlock time, then select <strong>Load Preview</strong> or save the capsule file.
+          </div>
+        </div>
+        <div class="tiny" style="margin-top:12px;">Saved files are plain HTML and require no server, no install, and no external libraries to open.</div>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    const threeCdn = "https://unpkg.com/three@0.160.0/build/three.min.js";
+
+    function loadThree(callback) {
+      if (window.THREE) return callback();
+      const script = document.createElement('script');
+      script.src = threeCdn;
+      script.onload = callback;
+      script.onerror = () => console.warn('Three.js failed to load. Background animation disabled.');
+      document.head.appendChild(script);
+    }
+
+    const clockStatus = document.getElementById('clockStatus');
+    const titleInput = document.getElementById('capsuleTitle');
+    const messageInput = document.getElementById('message');
+    const unlockInput = document.getElementById('unlockTime');
+    const previewArea = document.getElementById('previewArea');
+    const saveBtn = document.getElementById('saveBtn');
+    const previewBtn = document.getElementById('previewBtn');
+
+    function setDefaultUnlock() {
+      const future = new Date(Date.now() + 24 * 60 * 60 * 1000);
+      const local = new Date(future.getTime() - future.getTimezoneOffset() * 60000).toISOString().slice(0,16);
+      unlockInput.value = local;
+    }
+
+    function formatDate(date) {
+      return new Intl.DateTimeFormat(undefined, {
+        year: 'numeric', month: 'long', day: 'numeric',
+        hour: 'numeric', minute: '2-digit', second: '2-digit'
+      }).format(date);
+    }
+
+    function updateClock() {
+      clockStatus.textContent = formatDate(new Date());
+    }
+
+    function escapeHtml(value) {
+      return value
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+    }
+
+    function getCapsuleData() {
+      const title = titleInput.value.trim() || 'Untitled Capsule';
+      const message = messageInput.value;
+      const unlockValue = unlockInput.value;
+      if (!message.trim()) {
+        alert('Please enter a message for the time capsule.');
+        return null;
+      }
+      if (!unlockValue) {
+        alert('Please select an unlock date and time.');
+        return null;
+      }
+      const unlockDate = new Date(unlockValue);
+      if (Number.isNaN(unlockDate.getTime())) {
+        alert('The selected unlock date is invalid.');
+        return null;
+      }
+      if (unlockDate.getTime() <= Date.now()) {
+        alert('Please choose a future unlock time.');
+        return null;
+      }
+      return {
+        title,
+        message,
+        unlockISO: unlockDate.toISOString(),
+        createdISO: new Date().toISOString()
+      };
+    }
+
+    function countdownParts(targetMs) {
+      const diff = Math.max(0, targetMs - Date.now());
+      const days = Math.floor(diff / 86400000);
+      const hours = Math.floor((diff % 86400000) / 3600000);
+      const minutes = Math.floor((diff % 3600000) / 60000);
+      const seconds = Math.floor((diff % 60000) / 1000);
+      return { diff, days, hours, minutes, seconds };
+    }
+
+    let previewTimer = null;
+    function renderPreview(data) {
+      const unlockMs = new Date(data.unlockISO).getTime();
+      const render = () => {
+        const now = Date.now();
+        if (now < unlockMs) {
+          const c = countdownParts(unlockMs);
+          previewArea.innerHTML = `
+            <div class="capsule-title">${escapeHtml(data.title)}</div>
+            <div class="locked-card">
+              <div><strong>Status:</strong> Time locked</div>
+              <div style="margin-top:8px;"><strong>Unlocks:</strong> ${escapeHtml(formatDate(new Date(data.unlockISO)))}</div>
+              <div style="margin-top:14px;" class="countdown">${c.days}d ${String(c.hours).padStart(2,'0')}h ${String(c.minutes).padStart(2,'0')}m ${String(c.seconds).padStart(2,'0')}s</div>
+            </div>
+          `;
+        } else {
+          previewArea.innerHTML = `
+            <div class="capsule-title">${escapeHtml(data.title)}</div>
+            <div class="unlocked-card">
+              <div><strong>Status:</strong> Capsule unlocked</div>
+              <div style="margin-top:8px;"><strong>Created:</strong> ${escapeHtml(formatDate(new Date(data.createdISO)))}</div>
+              <div style="margin-top:8px;"><strong>Unlocked:</strong> ${escapeHtml(formatDate(new Date(data.unlockISO)))}</div>
+              <div class="revealed-message">${escapeHtml(data.message)}</div>
+            </div>
+          `;
+          clearInterval(previewTimer);
+        }
+      };
+      clearInterval(previewTimer);
+      render();
+      previewTimer = setInterval(render, 1000);
+    }
+
+    function buildCapsuleHtml(data) {
+      const payload = btoa(unescape(encodeURIComponent(JSON.stringify(data))));
+      return `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>${data.title.replace(/[<>]/g, '')} - TeamLegacy Capsule</title>
+  <style>
+    :root {
+      --bg1:#040b12; --bg2:#0d1f31; --panel:rgba(8,17,29,0.86); --line:rgba(91,208,255,0.24);
+      --text:#ecf8ff; --muted:#9fc4da; --accent:#5bd0ff; --accent2:#86ffcf;
+    }
+    * { box-sizing:border-box; }
+    html,body { margin:0; width:100%; height:100%; overflow:hidden; font-family:Arial,Helvetica,sans-serif; color:var(--text); background:radial-gradient(circle at top, #12304b 0%, #07111b 40%, #02060a 100%); }
+    #bg { position:fixed; inset:0; width:100%; height:100%; display:block; z-index:0; }
+    .overlay::before { content:''; position:fixed; inset:0; pointer-events:none; background:linear-gradient(to bottom, rgba(255,255,255,0.03), rgba(255,255,255,0.01) 50%, rgba(0,0,0,0.04)); background-size:100% 4px; opacity:0.25; z-index:1; }
+    .shell { position:relative; z-index:2; width:min(860px, calc(100vw - 24px)); margin:12px auto; padding:22px; border-radius:28px; background:linear-gradient(180deg, rgba(13, 24, 40, 0.92), rgba(8,14,24,0.84)); border:1px solid var(--line); box-shadow:0 20px 60px rgba(0,0,0,0.42); }
+    .title { font-size:clamp(1.7rem, 3vw, 2.5rem); margin:0; text-transform:uppercase; letter-spacing:.08em; color:var(--accent); text-shadow:0 0 18px rgba(91,208,255,.35); }
+    .sub { color:var(--muted); margin:8px 0 18px; line-height:1.5; }
+    .card { border:1px solid var(--line); border-radius:22px; background:rgba(255,255,255,0.035); padding:18px; }
+    .row { margin-bottom:10px; }
+    .label { color:var(--muted); font-size:.85rem; text-transform:uppercase; letter-spacing:.12em; margin-bottom:6px; }
+    .value { font-size:1rem; }
+    .count { font-size:1.5rem; font-weight:800; color:var(--accent2); margin-top:14px; }
+    .msg { white-space:pre-wrap; line-height:1.65; background:rgba(2,6,12,.55); border:1px solid rgba(255,255,255,.07); border-radius:16px; padding:16px; margin-top:12px; }
+    .ok { color:#9effbc; font-weight:700; }
+    .warn { color:#ffd79f; font-weight:700; }
+    .tiny { color:var(--muted); font-size:.82rem; margin-top:14px; line-height:1.45; }
+    @media (max-width:720px){ html,body{overflow:auto;} .shell{width:auto; margin:8px;} }
+  </style>
+</head>
+<body class="overlay">
+  <canvas id="bg"></canvas>
+  <main class="shell">
+    <h1 class="title">TeamLegacy Capsule</h1>
+    <div class="sub">This standalone file contains a sealed message that opens only after the scheduled unlock time.</div>
+    <section class="card" id="capsule"></section>
+    <div class="tiny">Reminder: this is a client-side time lock for keepsakes and personal use, not hardened encryption.</div>
+  </main>
+  <script>
+    const encodedPayload = "${payload}";
+    const threeCdn = "https://unpkg.com/three@0.160.0/build/three.min.js";
+    function decodePayload(str){ return JSON.parse(decodeURIComponent(escape(atob(str)))); }
+    function esc(v){ return String(v).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\"/g,'&quot;').replace(/'/g,'&#39;'); }
+    function fmt(d){ return new Intl.DateTimeFormat(undefined,{year:'numeric',month:'long',day:'numeric',hour:'numeric',minute:'2-digit',second:'2-digit'}).format(d); }
+    function parts(target){ const diff=Math.max(0,target-Date.now()); return {diff,days:Math.floor(diff/86400000),hours:Math.floor((diff%86400000)/3600000),minutes:Math.floor((diff%3600000)/60000),seconds:Math.floor((diff%60000)/1000)}; }
+    const data = decodePayload(encodedPayload);
+    const capsule = document.getElementById('capsule');
+    function render(){
+      const unlockMs = new Date(data.unlockISO).getTime();
+      if(Date.now() < unlockMs){
+        const c = parts(unlockMs);
+        capsule.innerHTML = '<div class="row"><div class="label">Capsule</div><div class="value">'+esc(data.title)+'</div></div>'+
+          '<div class="row"><div class="label">Status</div><div class="value warn">Time Locked</div></div>'+
+          '<div class="row"><div class="label">Unlock Time</div><div class="value">'+esc(fmt(new Date(data.unlockISO)))+'</div></div>'+
+          '<div class="count">'+c.days+'d '+String(c.hours).padStart(2,'0')+'h '+String(c.minutes).padStart(2,'0')+'m '+String(c.seconds).padStart(2,'0')+'s</div>';
+      } else {
+        capsule.innerHTML = '<div class="row"><div class="label">Capsule</div><div class="value">'+esc(data.title)+'</div></div>'+
+          '<div class="row"><div class="label">Status</div><div class="value ok">Unlocked</div></div>'+
+          '<div class="row"><div class="label">Created</div><div class="value">'+esc(fmt(new Date(data.createdISO)))+'</div></div>'+
+          '<div class="row"><div class="label">Unlocked</div><div class="value">'+esc(fmt(new Date(data.unlockISO)))+'</div></div>'+
+          '<div class="msg">'+esc(data.message)+'</div>';
+        clearInterval(timer);
+      }
+    }
+    const timer = setInterval(render, 1000); render();
+    function loadThree(cb){ if(window.THREE) return cb(); const s=document.createElement('script'); s.src=threeCdn; s.onload=cb; s.onerror=()=>{}; document.head.appendChild(s); }
+    loadThree(() => {
+      const canvas = document.getElementById('bg');
+      const renderer = new THREE.WebGLRenderer({canvas, antialias:true, alpha:true});
+      const scene = new THREE.Scene();
+      const camera = new THREE.PerspectiveCamera(60, innerWidth/innerHeight, 0.1, 1000);
+      camera.position.z = 22;
+      const stars = new THREE.BufferGeometry();
+      const count = 1400;
+      const arr = new Float32Array(count*3);
+      for(let i=0;i<count;i++){ arr[i*3]=(Math.random()-0.5)*90; arr[i*3+1]=(Math.random()-0.5)*70; arr[i*3+2]=(Math.random()-0.5)*80; }
+      stars.setAttribute('position', new THREE.BufferAttribute(arr,3));
+      const pts = new THREE.Points(stars, new THREE.PointsMaterial({size:0.12, transparent:true, opacity:0.9}));
+      scene.add(pts);
+      const torus = new THREE.Mesh(new THREE.TorusKnotGeometry(4.5, 0.18, 140, 18), new THREE.MeshBasicMaterial({wireframe:true, transparent:true, opacity:0.22}));
+      scene.add(torus);
+      function resize(){ renderer.setSize(innerWidth, innerHeight, false); camera.aspect=innerWidth/innerHeight; camera.updateProjectionMatrix(); }
+      addEventListener('resize', resize); resize();
+      (function animate(){ requestAnimationFrame(animate); pts.rotation.y += 0.0007; pts.rotation.x += 0.00025; torus.rotation.x += 0.003; torus.rotation.y += 0.004; renderer.render(scene,camera); })();
+    });
+  <\/script>
+</body>
+</html>`;
+    }
+
+    function downloadFile(filename, content) {
+      const blob = new Blob([content], { type: 'text/html;charset=utf-8' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+    }
+
+    previewBtn.addEventListener('click', () => {
+      const data = getCapsuleData();
+      if (!data) return;
+      renderPreview(data);
+    });
+
+    saveBtn.addEventListener('click', () => {
+      const data = getCapsuleData();
+      if (!data) return;
+      const filenameBase = data.title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') || 'teamlegacy-capsule';
+      const html = buildCapsuleHtml(data);
+      downloadFile(filenameBase + '.html', html);
+      renderPreview(data);
+    });
+
+    setDefaultUnlock();
+    updateClock();
+    setInterval(updateClock, 1000);
+
+    loadThree(() => {
+      const canvas = document.getElementById('bg');
+      const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
+      const scene = new THREE.Scene();
+      const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 1000);
+      camera.position.z = 24;
+
+      const starGeo = new THREE.BufferGeometry();
+      const starCount = 1800;
+      const positions = new Float32Array(starCount * 3);
+      for (let i = 0; i < starCount; i++) {
+        positions[i * 3] = (Math.random() - 0.5) * 100;
+        positions[i * 3 + 1] = (Math.random() - 0.5) * 80;
+        positions[i * 3 + 2] = (Math.random() - 0.5) * 100;
+      }
+      starGeo.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+      const stars = new THREE.Points(
+        starGeo,
+        new THREE.PointsMaterial({ size: 0.14, transparent: true, opacity: 0.85 })
+      );
+      scene.add(stars);
+
+      const ring = new THREE.Mesh(
+        new THREE.TorusKnotGeometry(5.8, 0.22, 180, 22),
+        new THREE.MeshBasicMaterial({ wireframe: true, transparent: true, opacity: 0.22 })
+      );
+      scene.add(ring);
+
+      const orb = new THREE.Mesh(
+        new THREE.IcosahedronGeometry(2.2, 1),
+        new THREE.MeshBasicMaterial({ wireframe: true, transparent: true, opacity: 0.18 })
+      );
+      orb.position.set(-8, 4, -8);
+      scene.add(orb);
+
+      function resize() {
+        renderer.setSize(window.innerWidth, window.innerHeight, false);
+        camera.aspect = window.innerWidth / window.innerHeight;
+        camera.updateProjectionMatrix();
+      }
+      window.addEventListener('resize', resize);
+      resize();
+
+      function animate() {
+        requestAnimationFrame(animate);
+        stars.rotation.y += 0.00055;
+        stars.rotation.x += 0.00018;
+        ring.rotation.x += 0.0025;
+        ring.rotation.y += 0.0032;
+        orb.rotation.x += 0.0035;
+        orb.rotation.y += 0.0028;
+        renderer.render(scene, camera);
+      }
+      animate();
+    });
+  </script>
+</body>
+</html>
